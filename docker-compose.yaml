@@ -1,0 +1,57 @@
+version: "2"
+
+services:
+
+  samba:
+     image: dperson/samba:rpi
+     restart: always
+     command: '-u "pi;o928oH@YH" -s "musica;/media/pi/datos/Musica;yes;no" -s "javier;/media/pi/datos/Javier;yes;no"'
+     stdin_open: true
+     tty: true
+     ports:
+       - 139:130
+       - 445:445
+     volumes:
+       - /usr/share/zoneinfo/Europe/Madrid:/etc/locatime
+       - /media/pi/datos:/media/pi/datos
+
+  transmission:
+     image: ghcr.io/linuxserver/transmission
+     command: transmission-daemon -f -g /config
+     volumes:
+       - /media/pi/datos/transmission/config:/config
+       - /media/pi/datos/transmission/downloads:/downloads
+     ports:
+       - 9091:9091
+       - 51413:52413
+       - 51413:52413/udp
+     expose:
+       - 9191
+     restart: unless-stopped
+
+  flexget:
+     build: flexget-arm
+     volumes:
+       - /media/pi/datos/flexget/config:/config
+       - /media/pi/datos/Peliculas:/storage/pelis
+       - /media/pi/datos/Series:/storage/series
+     ports:
+       - 5050:5050
+     environment:
+       - TORRENT_PLUGIN=transmission
+       - FG_WEBUI_PASSWD=
+     env_file: env
+     restart: unless-stopped
+     links:
+       - transmission
+
+  networks:
+     lan:
+       driver: winvlan
+       driver_opts:
+           parent: eth0
+       ipam:
+           config:
+              - subnet: "192.168.1.1/24"
+              - gateway: "192.168.1.1"
+               
