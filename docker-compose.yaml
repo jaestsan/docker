@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 
 services:
 
@@ -17,17 +17,22 @@ services:
 
   transmission:
      image: ghcr.io/linuxserver/transmission
-     command: transmission-daemon -f -g /config
+     container_name: transmission
+     environment:
+       - PUID=1000
+       - PGID=1000
+       - TZ=Europe/Madrid
+       - USER=javier
+       - PASS=o928oH@YH
      volumes:
        - /media/pi/datos/transmission/config:/config
        - /media/pi/datos/transmission/downloads:/downloads
+       - /media/pi/datos/transmission/watch:/watch
      ports:
        - 9091:9091
-       - 51413:52413
-       - 51413:52413/udp
-     expose:
-       - 9191
-     restart: always
+       - 51413:51413
+       - 51413:51413/udp
+     restart: unless-stopped
 
   plex: 
      image: jaymoulin/plex
