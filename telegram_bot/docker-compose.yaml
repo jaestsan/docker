@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+
+  javimetal-bot:
+     image: pablokbs/pelade-transmission-bot
+     restart: unless-stopped
+     command: python /code/transmission_bot/telegram_bot.py
+     environment:
+        - ADDRESS=192.168.1.27
+        - PORT=9091
+        - TS_USER=pi
+        - PASSWORD=09823gmg
+        - TOKEN=1943424087:AAH6UlTHzG39uK3BT1ATzzavDaBAMeGB2s4
+        - PERSISTENCE_FILE=/var/lib/transmission-telegram/authorized_chats
