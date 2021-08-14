@@ -1,1 +1,5 @@
-esto es una prueba
+docker-compose.yaml
+   contains docker containers related to samba, qbitorrent, plex and syncthing
+
+selenium-docker/docker-compose.yaml
+   contains docker containers related to selenium-node-chrome, selenium-node-firefox and selenium-hub
