@@ -16,7 +16,7 @@ services:
        - /media/pi/datos:/media/pi/datos
 
   plex: 
-     image: jaymoulin/plex
+     image: jaymoulin/plex:latest
      expose:
        - 32400
        - 33400
@@ -39,12 +39,12 @@ services:
       - TZ=Europe/Madrid
       - WEBUI_PORT=8080
     volumes:
-      - /media/pi/datos/qtorrent/config:/config
-      - /media/pi/datos/qtorrent/downloads:/downloads
+      - /media/pi/datos/qbittorrent/config:/config
+      - /media/pi/datos/qbittorrent/download:/downloads
     ports:
       - 6881:6881
       - 6881:6881/udp
-      - 8080:8080
+      - 3080:8080
     restart: unless-stopped
 
   syncthing:
@@ -62,6 +62,64 @@ services:
       - /media/pi/datos/syncthing/config:/config
       - /media/pi/datos/Javier:/javier
       - /media/pi/datos/Sonsoles:/sonsoles
+    restart: unless-stopped
+
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - SUBDOMAINS=javimetal
+      - TOKEN=7026fdd7-2f52-45c6-bffa-fbb87d3650f4
+      - LOG_FILE=false
+    volumes:
+      - /media/pi/datos/duckdns/config:/config
+    restart: unless-stopped
+    
+  swag:
+    image: linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - URL=javimetal.duckdns.org
+      - SUBDOMAINS=www,
+      - VALIDATION=duckdns
+      - DNSPLUGIN=cloudfare #optional
+      - DUCKDNSTOKEN=7026fdd7-2f52-45c6-bffa-fbb87d3650f4
+      - ONLY_SUBDOMAINS=false #optional
+      - STAGING=false #optional
+    volumes:
+      - /media/pi/datos/swag/config:/config
+    ports:
+      - 443:443
+      - 80:80 #optional
+    restart: unless-stopped
+
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - 67:67/udp
+      - 1080:80/tcp
+      - 1443:443/tcp
+    environment:
+      TZ: Europe/Madrid
+    volumes:
+      - /media/pi/datos/pihole/etc-pihole/:/etc/pihole/
+      - /media/pi/datos/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    cap_add:
+      - NET_ADMIN
     restart: unless-stopped
 
 networks:
