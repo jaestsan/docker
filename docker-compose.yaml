@@ -47,6 +47,22 @@ services:
       - 3080:8080
     restart: unless-stopped
 
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - AUTO_UPDATE=true #optional
+      - RUN_OPTS= #optional
+    volumes:
+      - /media/pi/datos/jackett/config:/config
+      - /media/pi/datos/jackett/downloads:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+
   syncthing:
     image: linuxserver/syncthing
     container_name: syncthing
