@@ -3,3 +3,7 @@ docker-compose.yaml
 
 selenium-docker/docker-compose.yaml
    contains docker containers related to selenium-node-chrome, selenium-node-firefox and selenium-hub
+
+install portainer:
+------------------
+docker run -d -p 9000:9000 --name portainer --restart always -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer
