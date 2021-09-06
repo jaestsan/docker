@@ -17,15 +17,18 @@ services:
        - /media/pi/datos:/media/pi/datos
 
   plex: 
-     image: jaymoulin/plex:latest
+     image: ghcr.io/linuxserver/plex:1.21.0.3616-d87012962-ls5
      container_name: plex
-     expose:
-       - 32400
-       - 33400
-     hostname: javimetal
+     network_mode: host
+     environment:
+       - PUID=1000
+       - PGID=1000
+       - VERSION=docker
+       - PLEX_CLAIM=claim-NsUfhJBtTtofZfW-Ua8N
      volumes:
        - /media/pi/datos/docker/Plex Media Server:/root/Library/Application Support/Plex Media Server
-       - /media/pi/datos:/media
+       - /media/pi/datos/Peliculas:/films
+       - /media/pi/datos/Series:/tv
        - /media/pi/datos/docker/tmp:/tmp
      restart: unless-stopped
 
@@ -44,7 +47,7 @@ services:
       - /media/pi/datos/Peliculas:/films
       - /media/pi/datos/Series:/tv
     ports:
-      - 6881:6881
+      - 6881:681
       - 6881:6881/udp
       - 3080:8080
     restart: unless-stopped
@@ -133,12 +136,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
      restart: always
 
-networks:
- lan:
-   driver: macvlan
-   driver_opts:
-     parent: eth0
-   ipam:
-     config:
-       - subnet: "192.168.1.0/24"
-         gateway: "192.168.1.1"
+     #networks:
+     # lan:
+     #driver: macvlan
+     #driver_opts:
+     # parent: eth0
+     #ipam:
+     #config:
+     #  - subnet: "192.168.1.0/24"
+     #    gateway: "192.168.1.1"
