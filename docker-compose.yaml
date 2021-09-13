@@ -17,7 +17,7 @@ services:
        - /media/pi/datos:/media/pi/datos
 
   plex: 
-     image: ghcr.io/linuxserver/plex:latest
+     image: ghcr.io/linuxserver/plex:arm32v7-latest
      container_name: plex
      network_mode: host
      environment:
@@ -26,10 +26,10 @@ services:
        - VERSION=docker
        - PLEX_CLAIM=claim-NsUfhJBtTtofZfW-Ua8N
      volumes:
-       - /media/pi/datos/docker/config:/config
+       - /media/pi/datos/docker/plex/config:/config
        - /media/pi/datos/Peliculas:/films
        - /media/pi/datos/Series:/tv
-       - /media/pi/datos/docker/tmp:/tmp
+       - /media/pi/datos/docker/plex/tmp:/tmp
      restart: unless-stopped
 
   qbittorrent:
@@ -106,29 +106,8 @@ services:
       - 80:80 #optional
     restart: unless-stopped
 
-  pihole:
-    image: pihole/pihole:latest
-    container_name: pihole
-    ports:
-      - 53:53/tcp
-      - 53:53/udp
-      - 67:67/udp
-      - 1080:80/tcp
-      - 1443:443/tcp
-    environment:
-      TZ: Europe/Madrid
-    volumes:
-      - /media/pi/datos/docker/pihole/etc-pihole/:/etc/pihole/
-      - /media/pi/datos/docker/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
-    dns:
-      - 127.0.0.1
-      - 1.1.1.1
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
-
   portainer:
-     image: portainer/portainer
+          image: portainer/portainer:latest
      container_name: portainer
      ports:
       - 9000:9000
