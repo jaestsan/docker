@@ -6,7 +6,7 @@ services:
      image: dperson/samba:rpi
      container_name: samba
      restart: always
-     command: '-u "pi;o928oH@YH" -s "musica;/media/pi/datos/Musica;yes;no" -s "javier;/media/pi/datos/Javier;yes;no" -s "sonsoles;/media/pi/datos/Sonsoles;yes;no"'
+     command: '-u "pi;o928oH@YH" -s "media;/media;yes;no" -s "downloads;/downloads/yes;no"'
      stdin_open: true
      tty: true
      ports:
@@ -14,7 +14,8 @@ services:
        - 445:445
      volumes:
        - /usr/share/zoneinfo/Europe/Madrid:/etc/locatime
-       - /media/pi/datos:/media/pi/datos
+       - /media/pi/datos:/media
+       - /media/pi/datos/qbittorrent/download:/downloads
 
   plex: 
      image: ghcr.io/linuxserver/plex:arm32v7-latest
@@ -29,6 +30,8 @@ services:
        - /media/pi/datos/docker/plex/config:/config
        - /media/pi/datos/Peliculas:/films
        - /media/pi/datos/Series:/tv
+       - /media/pi/datos/Kids:/kids
+       - /media/pi/datos/Kids_Series:/kids_tv
        - /media/pi/datos/docker/plex/tmp:/tmp
      restart: unless-stopped
 
@@ -107,10 +110,52 @@ services:
     restart: unless-stopped
 
   portainer:
-          image: portainer/portainer:latest
+     image: portainer/portainer:latest
      container_name: portainer
      ports:
       - 9000:9000
      volumes:
       - /var/run/docker.sock:/var/run/docker.sock
      restart: always
+
+  flexget:
+    image: wiserain/flexget
+    container_name: flexget
+    environment:
+      - FG_WEBUI_PASSWD=09823gmg
+      - FG_LOG_LEVEL=info
+      - FG_LOG_FILE=flexget.log
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - /media/pi/datos/flexget/data:/data
+      - /media/pi/datos/docker/flexget/config:/config
+    ports:
+      - 5050:5050
+
+
+  wireguard:
+    image: lscr.io/linuxserver/wireguard
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - SERVERURL=javimetal.duckdns.org #optional
+      - SERVERPORT=51820 #optional
+      - PEERS=2 #optional
+      - PEERDNS=auto #optional
+      - INTERNAL_SUBNET=10.13.13.0 #optional
+      - ALLOWEDIPS=0.0.0.0/0 #optional
+    volumes:
+      - /media/pi/datos/docker/wireguard/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - 51820:51820/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
