@@ -36,23 +36,21 @@ services:
      restart: unless-stopped
 
   qbittorrent:
-    image: ghcr.io/linuxserver/qbittorrent
+    image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Madrid
+      - TZ=Etc/UTC
       - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
     volumes:
-      - /media/pi/datos/docker/qbittorrent/config:/config
-      - /media/pi/datos/qbittorrent/download:/downloads
-      - /media/pi/datos/Musica:/music
-      - /media/pi/datos/Peliculas:/films
-      - /media/pi/datos/Series:/tv
+      - /home/javier/docker/qbittorrent/appdata:/config
+      - /home/javier/media/downloads:/downloads
     ports:
-      - 6881:681
+      - 8080:8080
+      - 6881:6881
       - 6881:6881/udp
-      - 3080:8080
     restart: unless-stopped
 
   syncthing:
@@ -72,43 +70,6 @@ services:
       - /media/pi/datos/Sonsoles:/sonsoles
     restart: unless-stopped
 
-  duckdns:
-    image: linuxserver/duckdns
-    container_name: duckdns
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Madrid
-      - SUBDOMAINS=javimetal
-      - TOKEN=7026fdd7-2f52-45c6-bffa-fbb87d3650f4
-      - LOG_FILE=false
-    volumes:
-      - /media/pi/datos/docker/duckdns/config:/config
-    restart: unless-stopped
-    
-  swag:
-    image: linuxserver/swag
-    container_name: swag
-    cap_add:
-      - NET_ADMIN
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Madrid
-      - URL=javimetal.duckdns.org
-      - SUBDOMAINS=www,
-      - VALIDATION=duckdns
-      - DNSPLUGIN=cloudfare #optional
-      - DUCKDNSTOKEN=7026fdd7-2f52-45c6-bffa-fbb87d3650f4
-      - ONLY_SUBDOMAINS=false #optional
-      - STAGING=false #optional
-    volumes:
-      - /media/pi/datos/docker/swag/config:/config
-    ports:
-      - 443:443
-      - 80:80 #optional
-    restart: unless-stopped
-
   portainer:
      image: portainer/portainer:latest
      container_name: portainer
@@ -117,23 +78,6 @@ services:
      volumes:
       - /var/run/docker.sock:/var/run/docker.sock
      restart: always
-
-  flexget:
-    image: wiserain/flexget
-    container_name: flexget
-    environment:
-      - FG_WEBUI_PASSWD=09823gmg
-      - FG_LOG_LEVEL=info
-      - FG_LOG_FILE=flexget.log
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Madrid
-    volumes:
-      - /media/pi/datos/flexget/data:/data
-      - /media/pi/datos/docker/flexget/config:/config
-    ports:
-      - 5050:5050
-
 
   wireguard:
     image: lscr.io/linuxserver/wireguard
@@ -145,17 +89,107 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Madrid
-      - SERVERURL=javimetal.duckdns.org #optional
+      - SERVERURL=wireguard.jaestsantech.org #optional
       - SERVERPORT=51820 #optional
       - PEERS=2 #optional
       - PEERDNS=auto #optional
       - INTERNAL_SUBNET=10.13.13.0 #optional
       - ALLOWEDIPS=0.0.0.0/0 #optional
     volumes:
-      - /media/pi/datos/docker/wireguard/config:/config
+      - /home/javier/docker/wireguard/config:/config
       - /lib/modules:/lib/modules
     ports:
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    environment:
+      PUID: 1000
+      PGID: 1000
+    ports:
+      - 3000:3000
+    volumes:
+      - /home/javier/docker/homepage/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    user: 1000:1000 # should be owner of volumes
+    ports:
+      - "4533:4533"
+    restart: unless-stopped
+    environment:
+      # Optional: put your config options customization here. Examples:
+      ND_SCANSCHEDULE: 15m
+      ND_LOGLEVEL: info  
+      ND_SESSIONTIMEOUT: 24h
+      ND_BASEURL: ""
+    volumes:
+      - "/home/javier/docker/navidrome:/data"
+      - "/home/javier/media/musica:/music:rw"
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /home/javier/docker/prowlarr/data:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /home/javier/docker/lidarr/config:/config
+      - /home/javier/media/musica:/music
+      - /home/javier/media/downloads:/downloads
+    ports:
+      - 8686:8686
+    restart: unless-stopped
+
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+     - /home/javier/docker/calibre/config:/config
+     - /home/javier/docker/calibre/books:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+
+    watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    command: --debug
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true 
+      - WATCHTOWER_INCLUDE_RESTARTING=true 
+      - WATCHTOWER_INCLUDE_STOPPED=true 
+      - WATCHTOWER_REVIVE_STOPPED=false 
+      - WATCHTOWER_NO_RESTART=false 
+      - WATCHTOWER_TIMEOUT=30s 
+      - WATCHTOWER_SCHEDULE=0 0 7 * * * 
+      - WATCHTOWER_DEBUG=false
+    restart: always
