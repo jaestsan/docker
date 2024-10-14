@@ -1,0 +1,24 @@
+version: "2.1"
+services:
+  wireguard:
+    image: lscr.io/linuxserver/wireguard
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - SERVERURL=wireguard.jaestsantech.org #set to auto if server has static IP, otherwise use a DDNS hostname
+      - SERVERPORT=51822
+      - PEERS=macbook,iphone,ipad
+      - PEERDNS=auto
+      - INTERNAL_SUBNET=10.13.13.0 #optional
+      - ALLOWEDIPS=0.0.0.0/0 #full tunnel always
+    volumes:
+      - /home/javier/docker/wireguard:/config
+      - /lib/modules:/lib/modules #do not change
+    ports:
+      - 51822:51820/udp
+    restart: unless-stopped
